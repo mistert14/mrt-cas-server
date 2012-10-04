@@ -1,0 +1,11 @@
+database:
+  adapter: mysql
+  database: casmrt
+  username: mistert
+  password: mrt14
+  host: localhost
+ldap:
+  server: localhost
+  port: 389
+  base: dc=blogdns,dc=org
+  filter: (objectClass=*) 

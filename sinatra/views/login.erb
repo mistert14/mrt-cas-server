@@ -1,0 +1,29 @@
+<html>
+<head>
+<script type="text/javascript" src="./js/jquery.js"></script>
+<script type="text/javascript" src="./js/init.js"></script>
+</head>
+<!-- etc -->
+<body>
+<div id="flash" class="flash">
+<% if (session["flash"] ) %>
+<%= @flash %>	
+<% end %>
+</div>
+
+<form name="form1" method="post" >
+        <br /><input name="username" />
+        <br /><input type= "password" name="password" value="" />
+        <br /><input type="submit" />
+</form>
+<% if (session["username"] ) %>
+   <% if (session["code"] == @digest) %>
+      <A href="/logout">LOGOUT</A><br />
+   <% end %>
+<% end %>
+<br />
+<% if (@debug) %>
+    <%= @debug %>	
+<% end %>
+</body>
+</html>
