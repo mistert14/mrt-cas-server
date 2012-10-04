@@ -1,0 +1,10 @@
+%form name="form1" method="post"
+	%input name="username"
+	%input type= "password" name="password" value=""
+	%input type="submit"
+<% if (session["username"] ) %>
+	<% if (session["code"] == @digest) %>
+        %A href="/logout">LOGOUT</A><br />
+	<% end %>
+<% end %>
+
