@@ -1,8 +1,8 @@
 database:
   adapter: mysql
   database: casmrt
-  username: mistert
-  password: mrt14
+  username: ####
+  password: ####
   host: localhost
 ldap:
   server: localhost
