@@ -6,7 +6,7 @@
 <!-- etc -->
 <body>
 <div id="flash" class="flash">
-<% if (session["flash"] ) %>
+<% if (Globals.flash ) %>
 <%= @flash %>	
 <% end %>
 </div>
@@ -16,10 +16,10 @@
         <br /><input type= "password" name="password" value="" />
         <br /><input type="submit" />
 </form>
-<% if (session["username"] ) %>
-   <% if (session["code"] == @digest) %>
+<% if (Globals.username) %>
+   <% #if (session["code"] == @digest) %>
       <A href="/logout">LOGOUT</A><br />
-   <% end %>
+   <% #end %>
 <% end %>
 <br />
 <% if (@debug) %>
