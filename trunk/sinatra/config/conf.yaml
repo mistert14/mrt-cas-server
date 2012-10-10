@@ -1,8 +1,10 @@
+network:
+  port:443
 database:
   adapter: mysql
   database: casmrt
-  username: ####
-  password: ####
+  username: toto
+  password: toto14
   host: localhost
 ldap:
   server: localhost

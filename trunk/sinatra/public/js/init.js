@@ -7,5 +7,5 @@ jQuery.prototype.highlight = function() {
 };
 
 $(function() {
-	jQuery('#flash').highlight();
+	//jQuery('#flash').highlight();
 });
