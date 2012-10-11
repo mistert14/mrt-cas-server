@@ -2,14 +2,20 @@ require 'net/ldap'
 require 'digest/md5'
 require "sinatra"
 require "sinatra/config_file"
-require "mysql"
+#require "mysql"
 require "ostruct"
 require 'sinatra/base'
 require 'webrick'
 require 'webrick/https'
 require 'openssl'
 require 'data_mapper'
+require 'logger'
 
+logger = Logger.new('log/sinatra.log')
+use Rack::CommonLogger, logger
+
+logger.level  = Logger::INFO 
+logger.info "CAS service started"
 
 enable :sessions
 
@@ -29,7 +35,8 @@ configure do
     :mysql_database=>settings.database['database'],
     :mysql_username=>settings.database['username'],
     :mysql_password=>settings.database['password'],
-    :mysql_host=>settings.database['host']
+    :mysql_host=>settings.database['host'],
+    :logger=>logger
   )
 end
 
@@ -67,46 +74,19 @@ def validateTicket(service,ticket)
         if (@test)
 		@test.consumed = DateTime.now().to_s
 		@test.save()
+		Globals.logger.level  = Logger::INFO 
+		Globals.logger.info "Ticket #{@test.ticket} was validated for service #{@test.service} for user #{@test.username}"
 		
 		return true
 	end
 	return false
 end
 
-
-def validateTicket2(service,ticket)
-	@ticket=ticket
-	@service=service
-	@sql="SELECT id FROM casmrt_st  WHERE ticket='"+@ticket+"' and service='"+@service+"' and consumed is NULL"
-	#"#{@sql}"
-	@test=requeteSql(@sql)
-	@id=@test.fetch_row
-	if (@id)
-		@time=DateTime.now.to_s
-		@sql2="UPDATE casmrt_st  SET consumed='"+@time+"' WHERE id='"+@id[0]+"' LIMIT 1 "
-		#"#{@sql2}"
-		@test2=requeteSql(@sql2)
-		return true
-	end
-	return false
-	
-end
-
-
-
 class MyServer  < Sinatra::Base
 
 
 
 	get "/debug" do
-		@test = Ticket.new()
-		@test.ticket='toto'
-		@test.service='toto'
-		@test.username='toto'
-		@test.client_hostname='localhost'
-		@test.created_on=DateTime.now().to_s
-		@test.type='ST'
-		@test.save()
 	end
 
 	get "/" do
@@ -121,6 +101,10 @@ class MyServer  < Sinatra::Base
   			@username= params[:username]
   			@password= params[:password]
 
+			Globals.logger.level  = Logger::INFO 
+			Globals.logger.info "Login request"
+
+
   			@dn = "uid=#{@username},ou=People,"+Globals.ldap_base
   			@ldap = Net::LDAP.new(:host=>Globals.ldap_server,:port=>Globals.ldap_port,:base=>Globals.ldap_base)
   			@ldap.authenticate(@dn,@password)
@@ -130,6 +114,7 @@ class MyServer  < Sinatra::Base
 				@digest = Digest::MD5.hexdigest(@username)
 				session[:code] = @digest
 				Globals.flash = 'authentication succeeded'
+				Globals.logger.info "authentication succeeded for user #{@username}"
 				if (Globals.service)
                 			redirect Globals.service
         			else
@@ -137,6 +122,7 @@ class MyServer  < Sinatra::Base
 				end
   			else
     				Globals.flash='authentication failed'
+    				Globals.loger.info="authentication failed for user #{@username}"
 				redirect '/login'
   			end
 		rescue
@@ -165,6 +151,7 @@ class MyServer  < Sinatra::Base
 			@service=params[:service]
 			Globals.service=params[:service]
 			@username=Globals.username
+			Globals.logger.info "Ticket #{@ticket} emitted for service #{@service} and user #{@username}, will redirect"	
 				@test = Ticket.new()
 				@test.ticket=@ticket
 				@test.service=@service
@@ -181,6 +168,7 @@ class MyServer  < Sinatra::Base
 	end
 
 	get "/logout" do
+		Globals.logger.info "Logout request for user #{Globals.username}"	
 		session[:code]=""
 		Globals.service=""
 		Globals.username=nil
