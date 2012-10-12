@@ -2,7 +2,6 @@ require 'net/ldap'
 require 'digest/md5'
 require "sinatra"
 require "sinatra/config_file"
-#require "mysql"
 require "ostruct"
 require 'sinatra/base'
 require 'webrick'
@@ -10,6 +9,7 @@ require 'webrick/https'
 require 'openssl'
 require 'data_mapper'
 require 'logger'
+require 'models/tickets'
 
 logger = Logger.new('log/sinatra.log')
 use Rack::CommonLogger, logger
@@ -41,34 +41,6 @@ configure do
 end
 
 
-DataMapper.setup(:default, {
-    :adapter  => 'mysql',
-    :database => Globals.mysql_database,
-    :username => Globals.mysql_username,
-    :password => Globals.mysql_password,
-    :host     => Globals.mysql_host
-  })
-
-
-class Ticket
-
-    include DataMapper::Resource
-    property :id, Serial, :required => true
-    property :ticket, String, :required => true
-    property :service, Text, :required => true
-    property :created_on, DateTime, :required => true
-    property :consumed, DateTime
-    property :client_hostname, String, :required => true
-    property :username, String, :required => true
-    property :type, String, :required => true
-    property :granted_by_pgt_id, Integer
-    property :granted_by_tgt_id, Integer
-
-end
-
-DataMapper.finalize
-Ticket.auto_upgrade!
-
 def validateTicket(service,ticket)
 	@test = Ticket.first( :ticket => ticket, :service => service)
         if (@test)
@@ -85,6 +57,25 @@ end
 class MyServer  < Sinatra::Base
 
 
+	get "/log" do
+		begin
+  	    		file = File.new("./log/sinatra.log", "r")
+  			counter = 0
+			tmp =""
+			while (line = file.gets)
+  				tmp +="#{line}"+"<br />"
+  				counter = counter + 1
+  			end
+  			file.close
+			"
+			#{tmp}
+			"
+  		rescue => err
+  			"Exception: #{err}"
+  			
+  		end
+
+	end
 
 	get "/debug" do
 	end
@@ -233,7 +224,7 @@ CERT_PATH = '/root/sinatra/'
 
 webrick_options = {
         :Port               => 443,
-        :Logger             => WEBrick::Log::new($stderr, WEBrick::Log::DEBUG),
+        #:Logger             => WEBrick::Log::new($stderr, WEBrick::Log::DEBUG),
         :DocumentRoot       => "/root/sinatra",
         :SSLEnable          => true,
         :SSLVerifyClient    => OpenSSL::SSL::VERIFY_NONE,
